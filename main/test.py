@@ -1,3 +1,5 @@
+import datetime
+
 import paho.mqtt.client as mqtt
 import time
 import base64
@@ -34,6 +36,8 @@ try:
             message = base64.b64encode(f.read())
         # Publish the message
         client.publish(topic, message)
+        # Print the current time including milliseconds
+        print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
         print(f"Published: {message}!")
 
         # Wait for a while before sending the next message
