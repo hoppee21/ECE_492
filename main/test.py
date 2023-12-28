@@ -1,5 +1,7 @@
 import paho.mqtt.client as mqtt
 import time
+import base64
+
 
 # Broker settings
 broker_address = "10.0.0.20"  # or the IP address of your broker
@@ -24,16 +26,18 @@ client.connect(broker_address, broker_port)
 # Publish messages
 try:
     while True:
-        # Simulate a temperature reading
-        temperature = 20 + (5 * (time.time() % 60) / 60)  # A simple simulation of temperature changes
-        message = f"Temperature: {temperature:.2f} °C"
-
+        # # Simulate a temperature reading
+        # temperature = 20 + (5 * (time.time() % 60) / 60)  # A simple simulation of temperature changes
+        # message = f"Temperature: {temperature:.2f} °C"
+        # Convert the image to base64 format
+        with open("C:\study\posetrans\demo_1.png", "rb") as f:
+            message = base64.b64encode(f.read())
         # Publish the message
         client.publish(topic, message)
-        print(f"Published: {message}")
+        print(f"Published: {message}!")
 
         # Wait for a while before sending the next message
-        time.sleep(5)
+        time.sleep(50)
 
 except KeyboardInterrupt:
     print("Exiting...")

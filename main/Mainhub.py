@@ -2,6 +2,8 @@ import paho.mqtt.client as mqtt
 import socket
 import threading
 import time
+import base64
+from detect import detect
 
 
 class MainHub:
@@ -74,7 +76,12 @@ class MainHub:
         Args:
             message (str): The message received.
         """
-        print(f"Temperature: {message}")
+
+        image_64_decode = base64.b64decode(message)
+        image_result = open('deer_decode.png', 'wb')  # create a writable image and write the decoding result
+        image_result.write(image_64_decode)
+
+        # print(f"Temperature: {message}")
 
     def handle_humidity(self, message):
         """
