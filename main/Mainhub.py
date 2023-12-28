@@ -3,7 +3,6 @@ import socket
 import threading
 import time
 import base64
-from detect import detect
 
 
 class MainHub:
