@@ -16,12 +16,17 @@ class MainHub:
         Args:
             interval (int): The interval in seconds at which images are received from the server.
         """
-        self.mqtt_broker = "localhost"
-        self.mqtt_port = 2883
+        self.mqtt_broker = "10.0.0.20"
+        self.mqtt_port = 1883
+        # MQTT credentials
+        self.username = "ECE492"
+        self.password = "492"
+
         self.temperature_topic = "sensor/temperature"
         self.humidity_topic = "sensor/humidity"
         self.occupancy_topic = "sensor/occupancy"
         self.client = mqtt.Client()
+        self.client.username_pw_set(username=self.username, password=self.password)
         self.image_server_address = None
         self.interval = interval
         self.timer_thread = None
