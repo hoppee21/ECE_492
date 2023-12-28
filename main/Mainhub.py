@@ -16,8 +16,8 @@ class MainHub:
         Args:
             interval (int): The interval in seconds at which images are received from the server.
         """
-        self.mqtt_broker = "your_mqtt_broker_address"
-        self.mqtt_port = 1883
+        self.mqtt_broker = "localhost"
+        self.mqtt_port = 2883
         self.temperature_topic = "sensor/temperature"
         self.humidity_topic = "sensor/humidity"
         self.occupancy_topic = "sensor/occupancy"
