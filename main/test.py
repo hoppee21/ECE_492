@@ -38,7 +38,6 @@ try:
         client.publish(topic, message)
         # Print the current time including milliseconds
         print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
-        print(f"Published: {message}!")
 
         # Wait for a while before sending the next message
         time.sleep(50)

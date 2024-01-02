@@ -3,6 +3,55 @@ import socket
 import threading
 import time
 import base64
+from detect import detectors
+
+
+def handle_occupancy(message):
+    """
+    Decode a base64 encoded image and detect the number of persons present in it.
+
+    This function takes a base64 encoded string representing an image, decodes it,
+    and uses a person detection function to count the number of persons present in the image.
+
+    Args:
+    message (str): A base64 encoded string of the image to be processed.
+
+    Returns:
+    None: This function prints the number of persons detected in the image.
+
+    Note: The `detectors` function used for detecting persons in the image is assumed to be
+    defined elsewhere in the code.
+    """
+
+    # Decode the base64 encoded image
+    image_64_decode = base64.b64decode(message)
+
+    # Detect number of persons in the image
+    num_person = detectors(image_64_decode)
+
+    # Print the occupancy
+    print(f"Occupancy: {num_person}")
+
+
+def handle_temperature(message):
+    """
+    Handle messages received on the temperature topic.
+
+    Args:
+        message (str): The message received.
+    """
+
+    print(f"Temperature: {message}")
+
+
+def handle_humidity(message):
+    """
+    Handle messages received on the humidity topic.
+
+    Args:
+        message (str): The message received.
+    """
+    print(f"Humidity: {message}")
 
 
 class MainHub:
@@ -62,49 +111,11 @@ class MainHub:
             msg: An instance of MQTTMessage. This is a class with members topic, payload, qos, retain.
         """
         if msg.topic == self.temperature_topic:
-            self.handle_temperature(msg.payload.decode())
+            handle_temperature(msg.payload.decode())
         elif msg.topic == self.humidity_topic:
-            self.handle_humidity(msg.payload.decode())
+            handle_humidity(msg.payload.decode())
         elif msg.topic == self.occupancy_topic:
-            self.handle_occupancy(msg.payload.decode())
-
-    def handle_temperature(self, message):
-        """
-        Handle messages received on the temperature topic.
-
-        Args:
-            message (str): The message received.
-        """
-
-        image_64_decode = base64.b64decode(message)
-        image_result = open('deer_decode.png', 'wb')  # create a writable image and write the decoding result
-        image_result.write(image_64_decode)
-
-        # print(f"Temperature: {message}")
-
-    def handle_humidity(self, message):
-        """
-        Handle messages received on the humidity topic.
-
-        Args:
-            message (str): The message received.
-        """
-        print(f"Humidity: {message}")
-
-    def handle_occupancy(self, message):
-        """
-        Handle messages received on the occupancy topic. Parses the server address and starts receiving images.
-
-        Args:
-            message (str): The message received, expected to be in the format "ip:port".
-        """
-        print("Occupancy alert received")
-        try:
-            ip, port = message.split(":")
-            self.image_server_address = (ip, int(port))
-            self.start_receiving_images()
-        except ValueError:
-            print("Invalid server address format received in occupancy topic")
+            handle_occupancy(msg.payload.decode())
 
     def start_receiving_images(self):
         """
