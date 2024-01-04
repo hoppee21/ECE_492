@@ -1,6 +1,7 @@
 import numpy as np
 import mediapipe as mp
 import cv2
+import time
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
@@ -89,4 +90,12 @@ def detectors(frame):
 
 
 if __name__ == '__main__':
-    print(detectors("C:\study\posetrans\PoseRAC\\3.jpg"))
+    # Start timer
+    start_time = time.time()
+    print(detectors("C:\study\posetrans\demo_1.png"))
+    # End timer
+    end_time = time.time()
+
+    # Calculate duration
+    duration = end_time - start_time
+    print("Total time: {} seconds".format(duration))

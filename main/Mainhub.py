@@ -106,7 +106,7 @@ class MainHub:
         Callback for when a PUBLISH message is received from the broker.
 
         Args:
-            client: The MQTT client instance.
+            client: The MQTT client instance. 
             userdata: The private user data as set in Client() or userdata_set().
             msg: An instance of MQTTMessage. This is a class with members topic, payload, qos, retain.
         """
