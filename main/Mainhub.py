@@ -1,9 +1,12 @@
+import io
+
 import paho.mqtt.client as mqtt
 import socket
 import threading
 import time
 import base64
 from detect import detectors
+from PIL import Image
 
 
 def handle_occupancy(message):
@@ -26,8 +29,12 @@ def handle_occupancy(message):
     # Decode the base64 encoded image
     image_64_decode = base64.b64decode(message)
 
+    # Convert the binary data to an image object
+    image_data = io.BytesIO(image_64_decode)
+    image = Image.open(image_data)
+
     # Detect number of persons in the image
-    num_person = detectors(image_64_decode)
+    num_person = detectors(image)
 
     # Print the occupancy
     print(f"Occupancy: {num_person}")

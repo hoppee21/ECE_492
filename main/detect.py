@@ -80,8 +80,7 @@ def detectors(frame):
                                            category_allowlist=['person'])
     detector = vision.ObjectDetector.create_from_options(options)
 
-    # image = mp.Image.create_from_file(frame)
-    image = frame.copy()
+    image = mp.Image.create_from_file(frame)
     detection_result = detector.detect(image)
 
     # Count the total number of categories across all detections
