@@ -14,7 +14,7 @@ mqtt_username = "ECE492"
 mqtt_password = "492"
 
 # Topic
-topic = "sensor/temperature"
+topic = "sensor/occupancy"
 
 # Create a MQTT client instance
 client = mqtt.Client("PythonClient")
@@ -38,7 +38,7 @@ try:
         client.publish(topic, message)
         # Print the current time including milliseconds
         print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
-        print(f"Published: {message}!")
+        # print(f"Published: {message}!")
 
         # Wait for a while before sending the next message
         time.sleep(50)
