@@ -5,6 +5,7 @@ import socket
 import threading
 import time
 import base64
+import datetime
 from detect import detectors
 from PIL import Image
 
@@ -38,6 +39,7 @@ def handle_occupancy(message):
 
     # Print the occupancy
     print(f"Occupancy: {num_person}")
+    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
 
 
 def handle_temperature(message):
