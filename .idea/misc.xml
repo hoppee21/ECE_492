@@ -3,5 +3,6 @@
   <component name="Black">
     <option name="sdkName" value="492" />
   </component>
+  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
   <component name="ProjectRootManager" version="2" project-jdk-name="492" project-jdk-type="Python SDK" />
 </project>
