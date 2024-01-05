@@ -29,7 +29,7 @@ def handle_occupancy(message):
     # Decode the base64 encoded image
     image_64_decode = base64.b64decode(message)
 
-    # Convert the binary data to an image object
+    # Convert the bytes data to a PIL Image object
     image_data = io.BytesIO(image_64_decode)
     image = Image.open(image_data)
 
