@@ -43,42 +43,45 @@ def visualize(
     return image
 
 
-def detect(aim):
-    # STEP 2: Create an ObjectDetector object.
+# def detect(aim):
+#     # STEP 2: Create an ObjectDetector object.
+#     base_options = python.BaseOptions(model_asset_path='model/efficientdet_lite0.tflite')
+#     options = vision.ObjectDetectorOptions(base_options=base_options,
+#                                            score_threshold=0.5,
+#                                            max_results=-1,
+#                                            category_allowlist=['person'])
+#     detector = vision.ObjectDetector.create_from_options(options)
+#
+#     # STEP 3: Load the input image.
+#     image = mp.Image.create_from_file(aim)
+#
+#     # STEP 4: Detect objects in the input image.
+#     detection_result = detector.detect(image)
+#     print(detection_result)
+#
+#     # STEP 5: Process the detection result. In this case, visualize it.
+#     image_copy = np.copy(image.numpy_view())
+#     annotated_image = visualize(image_copy, detection_result)
+#     rgb_annotated_image = cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB)
+#     cv2.imshow('Image', rgb_annotated_image)
+#
+#     # Wait for a key press to close the window
+#     cv2.waitKey(0)
+#
+#     # Close all OpenCV windows
+#     cv2.destroyAllWindows()
+
+
+def init_detector():
     base_options = python.BaseOptions(model_asset_path='model/efficientdet_lite0.tflite')
     options = vision.ObjectDetectorOptions(base_options=base_options,
                                            score_threshold=0.5,
                                            max_results=-1,
                                            category_allowlist=['person'])
-    detector = vision.ObjectDetector.create_from_options(options)
-
-    # STEP 3: Load the input image.
-    image = mp.Image.create_from_file(aim)
-
-    # STEP 4: Detect objects in the input image.
-    detection_result = detector.detect(image)
-    print(detection_result)
-
-    # STEP 5: Process the detection result. In this case, visualize it.
-    image_copy = np.copy(image.numpy_view())
-    annotated_image = visualize(image_copy, detection_result)
-    rgb_annotated_image = cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB)
-    cv2.imshow('Image', rgb_annotated_image)
-
-    # Wait for a key press to close the window
-    cv2.waitKey(0)
-
-    # Close all OpenCV windows
-    cv2.destroyAllWindows()
+    return vision.ObjectDetector.create_from_options(options)
 
 
-def detectors(frame):
-    base_options = python.BaseOptions(model_asset_path='model/efficientdet_lite0.tflite')
-    options = vision.ObjectDetectorOptions(base_options=base_options,
-                                           score_threshold=0.5,
-                                           max_results=-1,
-                                           category_allowlist=['person'])
-    detector = vision.ObjectDetector.create_from_options(options)
+def detectors(detector, frame):
 
     image = mp.Image(image_format=mp.ImageFormat.SRGB, data=np.asarray(frame))
     detection_result = detector.detect(image)

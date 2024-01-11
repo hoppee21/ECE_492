@@ -1,43 +1,38 @@
 import io
-
 import paho.mqtt.client as mqtt
 import socket
 import threading
 import time
 import base64
 import datetime
-from detect import detectors
+from detect import detectors, init_detector
 from PIL import Image
 
 
-def handle_occupancy(message):
+def handle_occupancy(message, detector):
     """
     Decode a base64 encoded image and detect the number of persons present in it.
 
-    This function takes a base64 encoded string representing an image, decodes it,
-    and uses a person detection function to count the number of persons present in the image.
+    This function decodes a base64 encoded string representing an image and uses
+    a person detection function to count the number of persons present in the image.
 
     Args:
-    message (str): A base64 encoded string of the image to be processed.
+        message (str): A base64 encoded string of the image to be processed.
+        detector: The detection model to be used.
 
-    Returns:
-    None: This function prints the number of persons detected in the image.
-
-    Note: The `detectors` function used for detecting persons in the image is assumed to be
-    defined elsewhere in the code.
+    Note:
+        The `detectors` function used for detecting persons in the image is assumed to be
+        defined elsewhere in the code.
     """
-
     # Decode the base64 encoded image
     image_64_decode = base64.b64decode(message)
-
-    # Convert the bytes data to a PIL Image object
     image_data = io.BytesIO(image_64_decode)
     image = Image.open(image_data)
 
     # Detect number of persons in the image
-    num_person = detectors(image)
+    num_person = detectors(detector, image)
 
-    # Print the occupancy
+    # Print the occupancy and current timestamp
     print(f"Occupancy: {num_person}")
     print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
 
@@ -49,7 +44,6 @@ def handle_temperature(message):
     Args:
         message (str): The message received.
     """
-
     print(f"Temperature: {message}")
 
 
@@ -65,7 +59,17 @@ def handle_humidity(message):
 
 class MainHub:
     """
-    MainHub class that handles MQTT communications and periodically receives images from a specified server.
+    MainHub class handles MQTT communications and periodically receives images from a server.
+
+    Attributes:
+        interval (int): Interval in seconds at which images are received.
+        mqtt_broker (str): Address of the MQTT broker.
+        mqtt_port (int): Port number of the MQTT broker.
+        client (mqtt.Client): The MQTT client instance.
+        image_server_address (tuple): Address of the image server.
+        running (bool): Flag to indicate if the image reception is ongoing.
+        detector: The detector model for occupancy detection.
+        timer_thread (threading.Thread): Thread for periodic image reception.
     """
 
     def __init__(self, interval):
@@ -73,11 +77,10 @@ class MainHub:
         Initialize the MainHub instance.
 
         Args:
-            interval (int): The interval in seconds at which images are received from the server.
+            interval (int): Interval in seconds at which images are received from the server.
         """
         self.mqtt_broker = "10.0.0.20"
         self.mqtt_port = 1883
-        # MQTT credentials
         self.username = "ECE492"
         self.password = "492"
 
@@ -91,19 +94,14 @@ class MainHub:
         self.timer_thread = None
         self.running = False
 
+        self.detector = init_detector()
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
 
     def on_connect(self, client, userdata, flags, rc):
         """
         Callback for when the client connects to the MQTT broker.
-        Subscribes to the specified MQTT topics.
-
-        Args:
-            client: The MQTT client instance.
-            userdata: The private user data as set in Client() or userdata_set().
-            flags: Response flags sent by the broker.
-            rc: The connection result.
+        Subscribes to specified MQTT topics.
         """
         print("Connected with result code " + str(rc))
         client.subscribe(self.temperature_topic)
@@ -112,19 +110,14 @@ class MainHub:
 
     def on_message(self, client, userdata, msg):
         """
-        Callback for when a PUBLISH message is received from the broker.
-
-        Args:
-            client: The MQTT client instance. 
-            userdata: The private user data as set in Client() or userdata_set().
-            msg: An instance of MQTTMessage. This is a class with members topic, payload, qos, retain.
+        Callback for when a PUBLISHING message is received from the broker.
         """
         if msg.topic == self.temperature_topic:
             handle_temperature(msg.payload.decode())
         elif msg.topic == self.humidity_topic:
             handle_humidity(msg.payload.decode())
         elif msg.topic == self.occupancy_topic:
-            handle_occupancy(msg.payload.decode())
+            handle_occupancy(msg.payload.decode(), self.detector)
 
     def start_receiving_images(self):
         """
