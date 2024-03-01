@@ -5,6 +5,7 @@ import threading
 import time
 import base64
 import datetime
+import sqlite3
 from detect import detectors, init_detector
 from PIL import Image
 
@@ -57,6 +58,15 @@ def handle_humidity(message):
     print(f"Humidity: {message}")
 
 
+def sqlite_connection():
+    connection = sqlite3.connect("data.db")
+    cursor = connection.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS TEMP (T FLOAT,Arrive_time TIME)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS HUMIDITY (H FLOAT,Arrive_time TIME)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS OCCUPANCY (O INT,Arrive_time TIME)")
+    return cursor
+
+
 class MainHub:
     """
     MainHub class handles MQTT communications and periodically receives images from a server.
@@ -88,6 +98,8 @@ class MainHub:
         self.humidity_topic = "sensor/humidity"
         self.occupancy_topic = "sensor/occupancy"
 
+        self.cursor = sqlite_connection()
+
         self.client = mqtt.Client()
         self.client.username_pw_set(username=self.username, password=self.password)
         self.image_server_address = None
@@ -114,7 +126,10 @@ class MainHub:
         Callback for when a PUBLISHING message is received from the broker.
         """
         if msg.topic == self.temperature_topic:
-            handle_temperature(msg.payload.decode())
+            temperature = msg.payload.decode()
+            self.cursor.execute("INSERT INTO TEMP VALUES (temperature, datetime('now', 'localtime'))")
+            self.cursor.connection.commit()
+            handle_temperature(temperature)
         elif msg.topic == self.humidity_topic:
             handle_humidity(msg.payload.decode())
         elif msg.topic == self.occupancy_topic:
