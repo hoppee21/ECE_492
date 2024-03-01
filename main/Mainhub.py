@@ -81,12 +81,13 @@ class MainHub:
         """
         self.mqtt_broker = "10.0.0.20"
         self.mqtt_port = 1883
-        self.username = "ECE492"
-        self.password = "492"
+        self.username = "ece492"
+        self.password = "ece492"
 
         self.temperature_topic = "sensor/temperature"
         self.humidity_topic = "sensor/humidity"
         self.occupancy_topic = "sensor/occupancy"
+
         self.client = mqtt.Client()
         self.client.username_pw_set(username=self.username, password=self.password)
         self.image_server_address = None
