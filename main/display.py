@@ -33,13 +33,18 @@ def display(data_cursor):
     # clear the buffer
     # print("Clear buffer")
     display.fill(Adafruit_EPD.WHITE)
-    display.pixel(10, 100, Adafruit_EPD.BLACK)
+    display.pixel(20, 100, Adafruit_EPD.BLACK)
+    data_cursor.execute("SELECT * FROM TEMP ORDER BY Arrive_time DESC LIMIT 1")
+    rows = data_cursor.fetchall()
+    Temperature_text = "Temperature :" + str(rows[0][0])
+    display.text(Temperature_text, 10, 10, Adafruit_EPD.BLACK)
+
 
     data_cursor.execute("SELECT * FROM OCCUPANCY ORDER BY Arrive_time DESC LIMIT 1")
     rows = data_cursor.fetchall()
-    text = "occupancy is: " + str(rows[0][0])
+    Occupancy_text = "occupancy is: " + str(rows[0][0])
 
-    display.text(text, 10, 10, Adafruit_EPD.BLACK)
+    display.text(Occupancy_text, 10, 30, Adafruit_EPD.BLACK)
     display.display()
 
 
