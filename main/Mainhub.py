@@ -1,17 +1,17 @@
-import io
-import paho.mqtt.client as mqtt
-import socket
-import threading
-import time
-import base64
 import datetime
+import io
+import socket
 import sqlite3
 import threading
-from detect import detectors, init_detector
+import time
+
+import paho.mqtt.client as mqtt
 from PIL import Image
 
+from detect import detectors, init_detector
 
-def handle_occupancy(message, detector):
+
+def handle_occupancy(message, detector, cursor):
     """
     Decode a base64 encoded image and detect the number of persons present in it.
 
@@ -21,44 +21,54 @@ def handle_occupancy(message, detector):
     Args:
         message (str): A base64 encoded string of the image to be processed.
         detector: The detection model to be used.
+        cursor: The database cursor object
 
     Note:
         The `detectors` function used for detecting persons in the image is assumed to be
         defined elsewhere in the code.
     """
-    # Decode the base64 encoded image
-    # image_64_decode = base64.b64decode(message)
-    # image_data = io.BytesIO(image_64_decode)
     image_data = io.BytesIO(message)
     image = Image.open(image_data)
 
-    # Detect number of persons in the image
+    # Detect the number of persons in the image
     num_person = detectors(detector, image)
+    t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
     # Print the occupancy and current timestamp
     print(f"Occupancy: {num_person}")
-    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
-    return int(num_person), datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+    # print(t)
+
+    cursor.execute("INSERT INTO OCCUPANCY VALUES (?, ?)", (int(num_person), t))
+    cursor.connection.commit()
 
 
-def handle_temperature(message):
+def handle_temperature(message, cursor):
     """
-    Handle messages received on the temperature topic.
+    Handle messages received on the temperature topic and upload the date to the database
 
     Args:
         message (str): The message received.
+        cursor: The database cursor object
     """
     print(f"Temperature: {message}")
+    t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+
+    cursor.execute("INSERT INTO OCCUPANCY VALUES (?, ?)", (message, t))
+    cursor.connection.commit()
 
 
-def handle_humidity(message):
+def handle_humidity(message, cursor):
     """
-    Handle messages received on the humidity topic.
+    Handle messages received on the humidity topic and upload the date to the database
 
     Args:
         message (str): The message received.
+        cursor: The database cursor
     """
     print(f"Humidity: {message}")
+    t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+
+    cursor.execute("INSERT INTO HUMIDITY VALUES (?, ?)", (message, t))
 
 
 def sqlite_connection():
@@ -101,7 +111,6 @@ class MainHub:
         self.humidity_topic = "sensor/humidity"
         self.occupancy_topic = "sensor/occupancy"
 
-		
         self.cursor = sqlite_connection()
         self.client = mqtt.Client()
         self.client.username_pw_set(username=self.username, password=self.password)
@@ -113,7 +122,6 @@ class MainHub:
         self.detector = init_detector()
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
-        
 
     def on_connect(self, client, userdata, flags, rc):
         """
@@ -130,23 +138,11 @@ class MainHub:
         Callback for when a PUBLISHING message is received from the broker.
         """
         if msg.topic == self.temperature_topic:
-            temperature = msg.payload.decode()
-            self.cursor.execute("INSERT INTO TEMP VALUES (?, datetime('now', 'localtime'))",(temperature))
-            self.cursor.connection.commit()
-            handle_temperature(temperature)
+            handle_temperature(msg.payload.decode(), self.cursor)
         elif msg.topic == self.humidity_topic:
-            handle_humidity(msg.payload.decode())
+            handle_humidity(msg.payload.decode(), self.cursor)
         elif msg.topic == self.occupancy_topic:
-			
-            o, t = handle_occupancy(msg.payload, self.detector)
-            print("received")
-            self.cursor.execute("INSERT INTO OCCUPANCY VALUES (?, ?)",(o,t))
-            self.cursor.connection.commit()
-            
-            up_button = digitalio.DigitalInOut(board.D5)
-            up_button.switch_to_input()
-            if (not up_button.value): display(cursor)
-            
+            handle_occupancy(msg.payload, self.detector, self.cursor)
 
     def start_receiving_images(self):
         """
