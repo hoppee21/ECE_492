@@ -35,7 +35,7 @@ def display(data_cursor):
     display.fill(Adafruit_EPD.WHITE)
     display.pixel(10, 100, Adafruit_EPD.BLACK)
 
-    data_cursor.execute("SELECT * FROM OCCUPANCY ORDER BY timestamp DESC LIMIT")
+    data_cursor.execute("SELECT * FROM OCCUPANCY ORDER BY Arrive_time DESC LIMIT 1")
     rows = data_cursor.fetchall()
     text = "occupancy is: " + str(rows[0][0])
 
@@ -54,4 +54,4 @@ if __name__ == "__main__":
     while True:
         if not up_button.value:
             display(cursor)
-        time.sleep(0.4)
+        time.sleep(0.1)
