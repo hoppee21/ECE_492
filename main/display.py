@@ -39,12 +39,16 @@ def display(data_cursor):
     Temperature_text = "Temperature :" + str(rows[0][0])
     display.text(Temperature_text, 10, 10, Adafruit_EPD.BLACK)
 
+    data_cursor.execute("SELECT * FROM HUMIDITY ORDER BY Arrive_time DESC LIMIT 1")
+    rows = data_cursor.fetchall()
+    Humidity_text = "Humidity :" + str(rows[0][0])
+    display.text(Humidity_text, 10, 30, Adafruit_EPD.BLACK)
 
     data_cursor.execute("SELECT * FROM OCCUPANCY ORDER BY Arrive_time DESC LIMIT 1")
     rows = data_cursor.fetchall()
     Occupancy_text = "occupancy is: " + str(rows[0][0])
 
-    display.text(Occupancy_text, 10, 30, Adafruit_EPD.BLACK)
+    display.text(Occupancy_text, 10, 50, Adafruit_EPD.BLACK)
     display.display()
 
 
