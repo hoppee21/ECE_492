@@ -53,7 +53,7 @@ def handle_temperature(message, cursor):
     print(f"Temperature: {message}")
     t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
-    cursor.execute("INSERT INTO OCCUPANCY VALUES (?, ?)", (message, t))
+    cursor.execute("INSERT INTO TEMP VALUES (?, ?)", (message, t))
     cursor.connection.commit()
 
 
@@ -69,6 +69,7 @@ def handle_humidity(message, cursor):
     t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
     cursor.execute("INSERT INTO HUMIDITY VALUES (?, ?)", (message, t))
+    cursor.connection.commit()
 
 
 def sqlite_connection():
