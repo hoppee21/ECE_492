@@ -6,6 +6,7 @@ import time
 import base64
 import datetime
 import sqlite3
+import threading
 from detect import detectors, init_detector
 from PIL import Image
 
@@ -26,8 +27,9 @@ def handle_occupancy(message, detector):
         defined elsewhere in the code.
     """
     # Decode the base64 encoded image
-    image_64_decode = base64.b64decode(message)
-    image_data = io.BytesIO(image_64_decode)
+    # image_64_decode = base64.b64decode(message)
+    # image_data = io.BytesIO(image_64_decode)
+    image_data = io.BytesIO(message)
     image = Image.open(image_data)
 
     # Detect number of persons in the image
@@ -36,6 +38,7 @@ def handle_occupancy(message, detector):
     # Print the occupancy and current timestamp
     print(f"Occupancy: {num_person}")
     print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
+    return int(num_person), datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
 
 def handle_temperature(message):
@@ -89,7 +92,7 @@ class MainHub:
         Args:
             interval (int): Interval in seconds at which images are received from the server.
         """
-        self.mqtt_broker = "192.168.0.187"
+        self.mqtt_broker = "localhost"
         self.mqtt_port = 1883
         self.username = "ece492"
         self.password = "ece492"
@@ -98,8 +101,8 @@ class MainHub:
         self.humidity_topic = "sensor/humidity"
         self.occupancy_topic = "sensor/occupancy"
 
+		
         self.cursor = sqlite_connection()
-
         self.client = mqtt.Client()
         self.client.username_pw_set(username=self.username, password=self.password)
         self.image_server_address = None
@@ -110,6 +113,7 @@ class MainHub:
         self.detector = init_detector()
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
+        
 
     def on_connect(self, client, userdata, flags, rc):
         """
@@ -127,13 +131,22 @@ class MainHub:
         """
         if msg.topic == self.temperature_topic:
             temperature = msg.payload.decode()
-            self.cursor.execute("INSERT INTO TEMP VALUES (temperature, datetime('now', 'localtime'))")
+            self.cursor.execute("INSERT INTO TEMP VALUES (?, datetime('now', 'localtime'))",(temperature))
             self.cursor.connection.commit()
             handle_temperature(temperature)
         elif msg.topic == self.humidity_topic:
             handle_humidity(msg.payload.decode())
         elif msg.topic == self.occupancy_topic:
-            handle_occupancy(msg.payload.decode(), self.detector)
+			
+            o, t = handle_occupancy(msg.payload, self.detector)
+            print("received")
+            self.cursor.execute("INSERT INTO OCCUPANCY VALUES (?, ?)",(o,t))
+            self.cursor.connection.commit()
+            
+            up_button = digitalio.DigitalInOut(board.D5)
+            up_button.switch_to_input()
+            if (not up_button.value): display(cursor)
+            
 
     def start_receiving_images(self):
         """
