@@ -143,6 +143,7 @@ class MainHub:
         elif msg.topic == self.humidity_topic:
             handle_humidity(msg.payload.decode(), self.cursor)
         elif msg.topic == self.occupancy_topic:
+            print("received")
             handle_occupancy(msg.payload, self.detector, self.cursor)
 
     def start_receiving_images(self):
