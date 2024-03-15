@@ -5,10 +5,14 @@ import sqlite3
 import threading
 import time
 
+
 import paho.mqtt.client as mqtt
 from PIL import Image
 
 from detect import detectors, init_detector
+
+# from abstractMessage import temperatureMessage, humidityMessage, occupancyMessage
+import abstractMessage
 
 
 def handle_occupancy(message, detector, cursor):
@@ -79,6 +83,9 @@ def sqlite_connection():
     cursor.execute("CREATE TABLE IF NOT EXISTS HUMIDITY (H FLOAT,Arrive_time TIME)")
     cursor.execute("CREATE TABLE IF NOT EXISTS OCCUPANCY (O INT,Arrive_time TIME)")
     return cursor
+    
+def addMessageType(dic, key, value):
+	dic[key] = value
 
 
 class MainHub:
@@ -123,6 +130,16 @@ class MainHub:
         self.detector = init_detector()
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
+        
+        self.messageTypeDict = dict()
+        addMessageType(self.messageTypeDict, "sensor/temperature", abstractMessage.temperatureMessage().getClass())
+        addMessageType(self.messageTypeDict, "sensor/humidity", abstractMessage.humidityMessage().getClass())
+        addMessageType(self.messageTypeDict, "sensor/occupancy", abstractMessage.occupancyMessage().getClass())
+        # print(self.messageTypeDict)
+
+    
+    
+    
 
     def on_connect(self, client, userdata, flags, rc):
         """
@@ -138,13 +155,19 @@ class MainHub:
         """
         Callback for when a PUBLISHING message is received from the broker.
         """
+        '''
         if msg.topic == self.temperature_topic:
             handle_temperature(msg.payload.decode(), self.cursor)
         elif msg.topic == self.humidity_topic:
             handle_humidity(msg.payload.decode(), self.cursor)
         elif msg.topic == self.occupancy_topic:
             print("received")
-            handle_occupancy(msg.payload, self.detector, self.cursor)
+            handle_occupancy(msg.payload, self.cursor, self.detector)
+        '''
+        msgClass = self.messageTypeDict[msg.topic]
+        message = msgClass(msg.payload)
+        message.processMessage(self.cursor, self.detector)
+        
 
     def start_receiving_images(self):
         """
