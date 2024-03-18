@@ -5,7 +5,6 @@ import sqlite3
 import threading
 import time
 
-
 import paho.mqtt.client as mqtt
 from PIL import Image
 
@@ -83,9 +82,10 @@ def sqlite_connection():
     cursor.execute("CREATE TABLE IF NOT EXISTS HUMIDITY (H FLOAT,Arrive_time TIME)")
     cursor.execute("CREATE TABLE IF NOT EXISTS OCCUPANCY (O INT,Arrive_time TIME)")
     return cursor
-    
+
+
 def addMessageType(dic, key, value):
-	dic[key] = value
+    dic[key] = value
 
 
 class MainHub:
@@ -130,16 +130,12 @@ class MainHub:
         self.detector = init_detector()
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
-        
+
         self.messageTypeDict = dict()
         addMessageType(self.messageTypeDict, "sensor/temperature", abstractMessage.temperatureMessage().getClass())
         addMessageType(self.messageTypeDict, "sensor/humidity", abstractMessage.humidityMessage().getClass())
         addMessageType(self.messageTypeDict, "sensor/occupancy", abstractMessage.occupancyMessage().getClass())
         # print(self.messageTypeDict)
-
-    
-    
-    
 
     def on_connect(self, client, userdata, flags, rc):
         """
@@ -167,7 +163,6 @@ class MainHub:
         msgClass = self.messageTypeDict[msg.topic]
         message = msgClass(msg.payload)
         message.processMessage(self.cursor, self.detector)
-        
 
     def start_receiving_images(self):
         """
@@ -183,7 +178,7 @@ class MainHub:
 
     def stop_receiving_images(self):
         """
-        Stop the thread that is receiving images from the server.
+        Stop the thread receiving images from the server.
         """
         self.running = False
         if self.timer_thread:
