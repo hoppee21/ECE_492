@@ -1,3 +1,17 @@
+/*
+--  Filename : Esp32-Cam-ino
+--  Author : ECE492-RMC Group
+--  Date : 06-Oct-2023
+--  Design Name: Room control system satelite device firmware
+--  Project Name: Room monitor and control
+*
+*   Acknowledgment (used libraries): 
+*       ArduinoJson by Benoit Blanchon
+*       PubSubClient by Nick O'Leary
+*       ESP-32 QRcode scanner at: https://github.com/alvarowolfx/ESP32QRCodeReader
+*
+*/
+
 #include "esp_camera.h"
 #include <WiFi.h>
 #include <PubSubClient.h>
