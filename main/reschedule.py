@@ -13,8 +13,8 @@ def round_down_time(dt_str):
 
 
 # Connect to your source and main databases
-source_conn = sqlite3.connect('data.db')
-main_conn = sqlite3.connect('main.db')
+source_conn = sqlite3.connect('/var/www/data.db')
+main_conn = sqlite3.connect('/var/www/main.db')
 
 source_cursor = source_conn.cursor()
 main_cursor = main_conn.cursor()
@@ -36,7 +36,7 @@ while True:
     df_aggregated = df_temp.groupby('Arrive_time').mean().reset_index()
     # round the number to two decimals
     df_aggregated = df_aggregated.round(2)
-    df_aggregated.to_sql('TEMP', main_conn, if_exists='append', index=False)
+    df_aggregated.to_sql('T EMP', main_conn, if_exists='append', index=False)
 
     # Read data from source database for a specific table, e.g., Temp
     source_cursor.execute("SELECT * FROM OCCUPANCY")
