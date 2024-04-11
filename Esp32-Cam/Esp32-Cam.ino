@@ -198,7 +198,7 @@ void camera_init() {
   config.pixel_format = PIXFORMAT_JPEG;
   //config.pixel_format = PIXFORMAT_GRAYSCALE;
 
-  config.frame_size   = FRAMESIZE_SVGA; // QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA
+  config.frame_size   = FRAMESIZE_VGA; // QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA
   config.jpeg_quality = 10;           
   config.fb_count     = 1;
 
@@ -210,10 +210,17 @@ void camera_init() {
 }
 
 void camera_reconfig() {
-   sensor_t * s = esp_camera_sensor_get();
-    s->set_framesize(s, FRAMESIZE_VGA); //QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA
-    s->set_quality(s, 10); // 10 - 63
-    s->set_pixformat(s, PIXFORMAT_JPEG);
+  reader.end();
+  esp_camera_return_all();
+  esp_camera_deinit();
+  camera_init();
+  /*
+  sensor_t * s = esp_camera_sensor_get();
+  //s->reset(s);
+  s->set_framesize(s, FRAMESIZE_VGA);
+  s->set_pixformat(s, PIXFORMAT_JPEG);
+  s->reset(s);
+  */
 }
 
 void take_picture() {
@@ -230,10 +237,12 @@ void take_picture() {
   else {
     //FAST MODE (increase MQTT_MAX_PACKET_SIZE)
     client.publish(topic_UP, fb->buf, fb->len, false);
+    Serial.println (fb->len);
   }
-  delay(500);
+  delay(100);
   Serial.println("image sent");
   esp_camera_fb_return(fb);
+  esp_camera_return_all();
 }
 
 
@@ -300,7 +309,7 @@ void onQrCodeTask(void *pvParameters)
 
   while (true)
   {
-    if (reader.receiveQrCode(&qrCodeData, 100))
+    if (reader.receiveQrCode(&qrCodeData, 500))
     {
       Serial.println("Found QRCode");
       if (qrCodeData.valid)
@@ -337,6 +346,27 @@ void onQrCodeTask(void *pvParameters)
   }
 }
 
+/*
+void onLoopTask(void *pvParameters) {
+  if (!client.connected()) {
+    reconnect();
+  }
+  Serial.println("1");
+  HIH_Get_Data = get_HIH_data();
+  send_HIH_Data();
+  //camera_reconfig();
+  Serial.println("2");
+  take_picture();
+  //client.loop();
+  Serial.println(ESP.getHeapSize());
+  Serial.println(ESP.getFreeHeap());
+  Serial.println(ESP.getPsramSize());
+  Serial.println(ESP.getFreePsram());
+  Serial.println("3");
+  delay(4500);
+}
+*/
+
 void setup() {
   Serial.begin(115200);
 
@@ -347,11 +377,12 @@ void setup() {
   Serial.println("Begin on Core 1");
   xTaskCreate(onQrCodeTask, "onQrCode", 4 * 1024, NULL, 4, NULL);
 
+
   while(!wifiValid){
     delay(500);
   }
 
-  camera_init();
+  camera_reconfig();
   Serial.println(ESP.getHeapSize());
   Serial.println(ESP.getFreeHeap());
   Serial.println(ESP.getPsramSize());
@@ -363,15 +394,24 @@ void setup() {
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
   client.setBufferSize(51200);
+  //xTaskCreate(onLoopTask, "onLoopTask", 4 * 1024, NULL, 2, NULL);
 }
 
 void loop() {
   if (!client.connected()) {
     reconnect();
   }
+  Serial.println("1");
   HIH_Get_Data = get_HIH_data();
   send_HIH_Data();
+  //camera_reconfig();
+  Serial.println("2");
   take_picture();
-  client.loop();
+  //client.loop();
+  Serial.println(ESP.getHeapSize());
+  Serial.println(ESP.getFreeHeap());
+  Serial.println(ESP.getPsramSize());
+  Serial.println(ESP.getFreePsram());
+  Serial.println("3");
   delay(4500);
 }
